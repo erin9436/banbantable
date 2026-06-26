@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>반반식탁절 (유린절)</title>
+  
+  <script src="https://unpkg.com/react@17/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body { margin: 0; padding: 0; font-family: 'Malgun Gothic', sans-serif; }
+    .chinese-retro-bg {
+      background-color: #fbbf24;
+      background-image: 
+        radial-gradient(#d97706 15%, transparent 16%),
+        radial-gradient(#d97706 15%, transparent 16%);
+      background-size: 60px 60px;
+      background-position: 0 0, 30px 30px;
+      position: relative;
+    }
+    .chinese-retro-bg::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(180deg, rgba(254,226,226,0) 0%, rgba(120,53,15,0.4) 100%);
+      pointer-events: none;
+    }
+    @keyframes scan {
+      0% { top: 0%; opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+    .animate-scan {
+      animation: scan 1.5s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const FOOD_LIST = [
+      { 
+        ch: "锅包肉", pinyin: "guōbāoròu", kr: "꿔바로우", emoji: "🍲",
+        talk: {
+          ch: "酸甜可口的锅包肉最好吃了！脆不脆？", pinyin: "Suāntián kěkǒu de guōbāoròu zuì hǎochī le! Cuì bu cuì?", kr: "새콤달콤한 꿔바로우가 최고지! 바삭바삭해?",
+          vocab: [{ch: "酸甜", pinyin: "suāntián", kr: "새콤달콤하다"}, {ch: "脆", pinyin: "cuì", kr: "바삭하다"}],
+          opts: [
+            {ch: "超级脆！特别好吃。", pinyin: "Chāojí cuì! Tèbié hǎochī.", kr: "엄청 바삭해! 진짜 맛있어."},
+            {ch: "有点软了，但也很好吃。", pinyin: "Yǒudiǎn ruǎn le, dàn yě hěn hǎochī.", kr: "조금 눅눅해졌지만, 그래도 맛있어."}
+          ]
+        }
+      },
+      { 
+        ch: "麻辣烫", pinyin: "málàtàng", kr: "마라탕", emoji: "🥘",
+        talk: {
+          ch: "麻辣烫很辣，能缓解压力！你能吃辣吗？", pinyin: "Málàtàng hěn là, néng huǎnjié yālì! Nǐ néng chī là ma?", kr: "마라탕은 매워서 스트레스가 풀려! 매운 거 잘 먹어?",
+          vocab: [{ch: "辣", pinyin: "là", kr: "맵다"}, {ch: "压力", pinyin: "yālì", kr: "스트레스"}],
+          opts: [
+            {ch: "我非常喜欢吃辣的！", pinyin: "Wǒ fēicháng xǐhuān chī là de!", kr: "나 매운 거 엄청 좋아해!"},
+            {ch: "我不太能吃辣，点了微辣。", pinyin: "Wǒ bù tài néng chī là, diǎn le wēilà.", kr: "나 잘 못 먹어서 약간 매운맛 시켰어."}
+          ]
+        }
+      },
+      { 
+        ch: "炒饭", pinyin: "chǎofàn", kr: "볶음밥", emoji: "🍛",
+        talk: {
+          ch: "粒粒分明的炒饭最管饱了。你加了什么配菜？", pinyin: "Lìlì fēnmíng de chǎofàn zuì guǎnbǎo le. Nǐ jiā le shénme pèicài?", kr: "고슬고슬한 볶음밥이 제일 든든해. 어떤 재료(반찬) 넣었어?",
+          vocab: [{ch: "管饱", pinyin: "guǎnbǎo", kr: "든든하다, 배부르다"}, {ch: "配菜", pinyin: "pèicài", kr: "곁들인 재료"}],
+          opts: [
+            {ch: "加了鸡蛋和虾仁！", pinyin: "Jiā le jīdān hé xiārén!", kr: "계란이랑 새우 넣었어!"},
+            {ch: "我加了很多蔬菜。", pinyin: "Wǒ jiā le hěn duō shūcài.", kr: "채소를 많이 넣었어."}
+          ]
+        }
+      },
+      { 
+        ch: "饺子", pinyin: "jiǎozi", kr: "만두", emoji: "🥟",
+        talk: {
+          ch: "热乎乎的饺子吃一口心情就会变好！是肉馅的吗？", pinyin: "Rèhūhū de jiǎozi chī yī kǒu xīnqíng jiù huì biàn hǎo! Shì ròuxiàn de ma?", kr: "따끈한 만두 한 입 먹으면 기분이 좋아져! 고기만두야?",
+          vocab: [{ch: "热乎乎", pinyin: "rèhūhū", kr: "따끈따끈하다"}, {ch: "肉馅", pinyin: "ròuxiàn", kr: "고기소"}],
+          opts: [
+            {ch: "对，是猪肉馅的。", pinyin: "Duì, shì zhūròu xiàn de.", kr: "응, 돼지고기 만두야."},
+            {ch: "不是，我吃的是素馅的。", pinyin: "Bú shì, wǒ chī de shì sùxiàn de.", kr: "아니, 난 채소 만두 먹어."}
+          ]
+        }
+      },
+      { 
+        ch: "火锅", pinyin: "huǒguō", kr: "훠궈", emoji: "🍲",
+        talk: {
+          ch: "热腾腾的火锅，一个人吃也很享受！你喜欢吃什么底料？", pinyin: "Rèténgténg de huǒguō, yīgè rén chī yě hěn xiǎngshòu! Nǐ xǐhuān chī shénme dǐliào?", kr: "보글보글 훠궈, 혼자 먹어도 너무 좋아! 어떤 육수 좋아해?",
+          vocab: [{ch: "享受", pinyin: "xiǎngshòu", kr: "누리다, 즐기다"}, {ch: "底料", pinyin: "dǐliào", kr: "육수, 소스"}],
+          opts: [
+            {ch: "我最喜欢清汤底料。", pinyin: "Wǒ zuì xǐhuān qīngtāng dǐliào.", kr: "난 맑은 탕이 제일 좋아."},
+            {ch: "当然是麻辣底料啦！", pinyin: "Dāngrán shì málà dǐliào la!", kr: "당연히 마라탕 육수지!"}
+          ]
+        }
+      },
+      { 
+        ch: "糖葫芦", pinyin: "tánghúlu", kr: "탕후루", emoji: "🍡",
+        talk: {
+          ch: "甜脆的糖葫芦！最适合当甜点了！是什么水果的？", pinyin: "Tiáncuì de tánghúlu! Zuì shìhé dāng tiándiǎn le! Shì shénme shuǐguǒ de?", kr: "달콤바삭한 탕후루! 디저트로 딱이야! 무슨 과일이야?",
+          vocab: [{ch: "适合", pinyin: "shìhé", kr: "적합하다"}, {ch: "甜点", pinyin: "tiándiǎn", kr: "디저트"}],
+          opts: [
+            {ch: "是经典的草莓糖葫芦。", pinyin: "Shì jīngdiǎn de cǎoméi tánghúlu.", kr: "클래식한 딸기 탕후루야."},
+            {ch: "我买的是橘子味的。", pinyin: "Wǒ mǎi de shì júzi wèi de.", kr: "난 귤 맛으로 샀어."}
+          ]
+        }
+      }
+    ];
+
+    const getScenario = (food) => [
+      {
+        step: 0,
+        aiMsg: { ch: `你好！你也在吃${food.ch}吗？`, pinyin: `Nǐ hǎo! Nǐ yě zài chī ${food.pinyin} ma?`, kr: `안녕! 너도 지금 ${food.kr} 먹니? 나는 너의 식사 메이트 판다야!` },
+        vocab: [{ ch: food.ch, pinyin: food.pinyin, kr: `${food.kr}` }, { ch: "孤单", pinyin: "gūdān", kr: "외롭다" }, { ch: "喜欢", pinyin: "xǐhuān", kr: "좋아하다" }],
+        options: [
+          { ch: "对啊，一个人吃，但看你就不孤单了。", pinyin: "Duì a, yīgè rén chī, dàn kàn nǐ jiù bù gūdān le.", kr: "응, 혼자 먹지만 널 보니 외롭지 않아." },
+          { ch: "对！这是我最喜欢的食物。", pinyin: "Duì! Zhè shì wǒ zuì xǐhuān de shíwù.", kr: "응! 내가 제일 좋아하는 음식이야." }
+        ]
+      },
+      {
+        step: 1,
+        aiMsg: { ch: food.talk.ch, pinyin: food.talk.pinyin, kr: food.talk.kr },
+        vocab: food.talk.vocab,
+        options: food.talk.opts
+      },
+      {
+        step: 2,
+        aiMsg: { ch: "今天过得怎么样？工作学习累不累？", pinyin: "Jīntiān guò de zěnmeyàng? Gōngzuò xuéxí lèi bu lèi?", kr: "오늘 하루 어땠어? 공부하느라 많이 힘들었지?" },
+        vocab: [{ ch: "今天", pinyin: "jīntiān", kr: "오늘" }, { ch: "累", pinyin: "lèi", kr: "피곤하다, 힘들다" }, { ch: "精神", pinyin: "jīngshén", kr: "정신, 활기" }],
+        options: [
+          { ch: "今天有点累，跟你聊天就有精神了。", pinyin: "Jīntiān yǒudiǎn lèi, gēn nǐ liáotiān jiù yǒu jīngshén le.", kr: "오늘 좀 피곤했는데, 너랑 얘기하니 힘이 나." },
+          { ch: "今天很好！没什么特别的。", pinyin: "Jīntiān hěn hǎo! Méi shénme tèbié de.", kr: "오늘 좋았어! 특별한 일은 없었어." }
+        ]
+      },
+      {
+        step: 3,
+        aiMsg: { ch: "祝你‘半半餐桌节’快乐！慢慢吃吧！", pinyin: "Zhù nǐ 'Bànbàn cānzhuō jié' kuàilè! Mànmàn chī ba!", kr: "즐거운 '반반식탁절' 보내! 천천히 맛있게 먹어!" },
+        vocab: [{ ch: "祝", pinyin: "zhù", kr: "축원하다, 기원하다" }, { ch: "陪伴", pinyin: "péibàn", kr: "동반하다, 곁에 있다" }, { ch: "慢慢", pinyin: "mànmàn", kr: "천천히" }],
+        options: [
+          { ch: "谢谢你的陪伴，祝你天天快乐！", pinyin: "Xièxiè nǐ de péibàn, zhù nǐ tiāntiān kuàilè!", kr: "말동무가 돼줘서 고마워, 좋은 하루 보내!" }
+        ]
+      }
+    ];
+
+    function App() {
+      const [view, setView] = useState('home'); 
+      const [chatStep, setChatStep] = useState(0);
+      const [showOptions, setShowOptions] = useState(false);
+      const [isTyping, setIsTyping] = useState(false);
+      
+      const [scanSource, setScanSource] = useState('none');
+      const [imagePreview, setImagePreview] = useState(null);
+      const [isScanning, setIsScanning] = useState(false); 
+      
+      const [recordingOption, setRecordingOption] = useState(null); 
+      const [micState, setMicState] = useState(null); 
+
+      const [detectedFood, setDetectedFood] = useState(FOOD_LIST[0]);
+      const [currentScenario, setCurrentScenario] = useState(getScenario(FOOD_LIST[0]));
+      
+      const videoRef = useRef(null);
+      const fileInputRef = useRef(null);
+      const [stream, setStream] = useState(null);
+      const currentAudioRef = useRef(null);
+
+      // --- 모델 URL (본인의 URL로 변경하세요) ---
+      const TM_URL = "https://teachablemachine.withgoogle.com/models/여기에_본인의_모델_아이디를_넣으세요/";
+      const [model, setModel] = useState(null);
+      const [isModelLoading, setIsModelLoading] = useState(true);
+      const [isSimulationMode, setIsSimulationMode] = useState(false); 
+
+      useEffect(() => {
+        const initTeachableMachine = async () => {
+          try {
+            const loadScript = (src) => new Promise((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = src;
+              script.onload = resolve;
+              script.onerror = reject;
+              document.head.appendChild(script);
+            });
+
+            if (!window.tf) await loadScript("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js");
+            if (!window.tmImage) await loadScript("https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js");
+
+            const modelURL = TM_URL + "model.json";
+            const metadataURL = TM_URL + "metadata.json";
+            const tmModel = await window.tmImage.load(modelURL, metadataURL);
+            
+            setModel(tmModel);
+          } catch (error) {
+            console.warn("💡 티처블 머신 주소가 올바르지 않아 자동으로 랜덤 시뮬레이션 모드로 작동합니다.");
+            setIsSimulationMode(true);
+          } finally {
+            setIsModelLoading(false); 
+          }
+        };
+        initTeachableMachine();
+      }, []);
+
+      useEffect(() => {
+        if (view === 'home' && scanSource === 'webcam') {
+          navigator.mediaDevices.getUserMedia({ video: true })
+            .then(s => {
+              setStream(s);
+              if (videoRef.current) {
+                videoRef.current.srcObject = s;
+              }
+            })
+            .catch(err => {
+              console.error("웹캠 권한 오류:", err);
+              alert("웹캠을 찾을 수 없거나 권한이 없습니다. 사진 업로드 기능을 이용해주세요.");
+              setScanSource('none');
+            });
+        } else {
+          if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            setStream(null);
+          }
+        }
+        
+        return () => {
+          if (stream) stream.getTracks().forEach(track => track.stop());
+          if (currentAudioRef.current) currentAudioRef.current.pause();
+        };
+      }, [view, scanSource]);
+
+      const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const url = URL.createObjectURL(file);
+          setImagePreview(url);
+          setScanSource('upload');
+        }
+      };
+
+      const playTTS = (text) => {
+        if (currentAudioRef.current) {
+          currentAudioRef.current.pause();
+          currentAudioRef.current.currentTime = 0;
+        }
+        window.speechSynthesis.cancel(); 
+
+        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=zh-CN&client=tw-ob`;
+        const audio = new Audio(audioUrl);
+        currentAudioRef.current = audio;
+
+        audio.play().catch(err => {
+          if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+          }
+        });
+      };
+
+      const startAnalysis = async () => {
+        setIsScanning(true);
+        
+        try {
+          if (isSimulationMode || !model) {
+            setTimeout(() => {
+              setIsScanning(false);
+              const randomFood = FOOD_LIST[Math.floor(Math.random() * FOOD_LIST.length)];
+              setDetectedFood(randomFood);
+              setCurrentScenario(getScenario(randomFood));
+              setView('matched');
+            }, 2500);
+            return;
+          }
+
+          let predictions = [];
+
+          if (scanSource === 'webcam' && videoRef.current) {
+            predictions = await model.predict(videoRef.current);
+          } else if (scanSource === 'upload') {
+            const imageElement = document.getElementById('uploaded-food-img');
+            predictions = await model.predict(imageElement);
+          }
+
+          const bestPrediction = predictions.reduce((prev, current) => 
+            (prev.probability > current.probability) ? prev : current
+          );
+
+          let matchedFood = FOOD_LIST.find(f => f.kr === bestPrediction.className || f.ch === bestPrediction.className);
+          
+          if (!matchedFood) {
+            matchedFood = FOOD_LIST[Math.floor(Math.random() * FOOD_LIST.length)];
+          }
+
+          setTimeout(() => {
+            setIsScanning(false);
+            setDetectedFood(matchedFood);
+            setCurrentScenario(getScenario(matchedFood));
+            setView('matched');
+          }, 2500); 
+
+        } catch (error) {
+          console.error("인식 중 오류 발생:", error);
+          setIsScanning(false);
+          alert("분석 중 오류가 발생했습니다.");
+        }
+      };
+
+      const enterChat = () => {
+        setView('chat');
+        setChatStep(0);
+        triggerAiMessage(0);
+      };
+
+      const triggerAiMessage = (step) => {
+        setShowOptions(false);
+        setIsTyping(true);
+        
+        setTimeout(() => {
+          setIsTyping(false);
+          playTTS(currentScenario[step].aiMsg.ch);
+          setTimeout(() => { setShowOptions(true); }, 7500); 
+        }, 3500); 
+      };
+
+      const handleMicClick = (opt) => {
+        if (micState) return; 
+        setRecordingOption(opt);
+        setMicState('listening'); 
+        
+        setTimeout(() => {
+          setMicState('processing'); 
+          setTimeout(() => {
+            setRecordingOption(null);
+            setMicState(null);
+            handleUserReply(opt); 
+          }, 2000);
+        }, 6000);
+      };
+
+      const handleUserReply = (reply) => {
+        setShowOptions(false);
+        const nextStep = chatStep + 1;
+        setChatStep(nextStep);
+
+        if (nextStep < currentScenario.length) {
+          setTimeout(() => { triggerAiMessage(nextStep); }, 2000); 
+        }
+      };
+
+      const resetApp = () => {
+        setView('home');
+        setChatStep(0);
+        setShowOptions(false);
+        setIsTyping(false);
+        setMicState(null);
+        setRecordingOption(null);
+        setScanSource('none');
+        setImagePreview(null);
+        setIsScanning(false);
+        if (currentAudioRef.current) currentAudioRef.current.pause();
+        window.speechSynthesis.cancel();
+      };
+
+      return (
+        <div className="w-full h-screen flex flex-col font-sans text-gray-800 overflow-hidden chinese-retro-bg">
+          
+          <div className="bg-red-600 text-white p-4 flex items-center justify-between shadow-lg border-b-8 border-red-800 z-50 relative">
+            <div className="flex items-center gap-3 pl-4">
+              <span className="text-3xl">❤️</span>
+              <div>
+                <h1 className="text-2xl font-extrabold tracking-widest text-yellow-300 drop-shadow-md">半半餐桌节</h1>
+                <p className="text-sm font-bold text-red-100 tracking-wide">반반식탁절 : 따로 또 같이</p>
+              </div>
+            </div>
+            {view !== 'home' && (
+               <button onClick={resetApp} className="mr-4 p-3 bg-red-700 hover:bg-red-800 rounded-full border-2 border-red-400 transition-colors shadow-inner text-xl">
+                 🔄
+               </button>
+            )}
+          </div>
+
+          <div className="flex-1 relative w-full h-full flex flex-col items-center justify-center p-4">
+            
+            {view === 'home' && (
+              <div className="bg-white/95 border-8 border-amber-600 rounded-[3rem] p-10 flex flex-col items-center justify-center text-center space-y-8 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-500 z-20">
+                <div className="space-y-3">
+                  <span className="bg-red-100 text-red-600 px-4 py-2 rounded-full font-bold text-sm">Step 1</span>
+                  <h2 className="text-3xl font-extrabold text-amber-900">음식 이미지 분석</h2>
+                  <p className="text-amber-700 font-medium">실제 음식을 비추거나 사진을 업로드하세요.</p>
+                </div>
+
+                <div className="relative w-full h-64 md:h-72 bg-amber-50 rounded-[2rem] border-4 border-dashed border-amber-400 flex items-center justify-center overflow-hidden shadow-inner">
+                  
+                  {scanSource === 'none' && (
+                    <div className="flex flex-col items-center gap-4 text-amber-400/50">
+                      <span className="text-7xl">🖼️</span>
+                      <p className="font-bold">입력 방식을 선택해주세요</p>
+                    </div>
+                  )}
+
+                  {scanSource === 'webcam' && (
+                    <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover" />
+                  )}
+
+                  {scanSource === 'upload' && imagePreview && (
+                    <img id="uploaded-food-img" src={imagePreview} alt="업로드된 음식" className="absolute inset-0 w-full h-full object-cover" />
+                  )}
+
+                  {isScanning && (
+                    <>
+                      <div className="absolute inset-0 bg-yellow-400/30 backdrop-blur-[1px]"></div>
+                      <div className="absolute top-0 left-0 w-full h-3 bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.9)] animate-scan z-20"></div>
+                      <span className="text-6xl text-red-500 animate-pulse z-20 drop-shadow-lg">🔍</span>
+                      <p className="absolute bottom-6 font-bold text-red-600 animate-pulse z-20 bg-white/80 px-4 py-1 rounded-full">AI 이미지 분석 중...</p>
+                    </>
+                  )}
+                </div>
+
+                <div className="w-full flex flex-col gap-3">
+                  <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileUpload} />
+
+                  {!isScanning && scanSource === 'none' && (
+                    <div className="flex gap-3 w-full">
+                      <button onClick={() => setScanSource('webcam')} className="flex-1 py-4 bg-amber-500 text-amber-950 rounded-xl font-bold text-lg hover:bg-amber-400 transition-all flex flex-col items-center gap-1 border-b-4 border-amber-700 active:border-b-0 active:translate-y-1">
+                        <span className="text-2xl">📸</span> 웹캠으로 비추기
+                      </button>
+                      <button onClick={() => fileInputRef.current.click()} className="flex-1 py-4 bg-amber-100 text-amber-800 rounded-xl font-bold text-lg hover:bg-amber-200 transition-all flex flex-col items-center gap-1 border-b-4 border-amber-300 active:border-b-0 active:translate-y-1">
+                        <span className="text-2xl">📤</span> 사진 업로드하기
+                      </button>
+                    </div>
+                  )}
+
+                  {!isScanning && scanSource !== 'none' && (
+                    <>
+                      <button 
+                        onClick={startAnalysis}
+                        disabled={isModelLoading}
+                        className={`w-full py-5 rounded-2xl font-black text-xl flex items-center justify-center gap-3 transition-all border-b-4 
+                          ${isModelLoading 
+                            ? 'bg-gray-400 border-gray-600 text-white cursor-not-allowed' 
+                            : 'border-red-700 bg-red-500 text-yellow-100 hover:bg-red-600 shadow-xl active:border-b-0 active:translate-y-1'}`}
+                      >
+                        {isModelLoading ? 'AI 모델 불러오는 중...' : '이 음식 분석하기'} <span>➡️</span>
+                      </button>
+                      <button onClick={() => { setScanSource('none'); setImagePreview(null); }} className="w-full py-3 text-amber-600 font-bold hover:text-red-500 underline underline-offset-2">
+                        다른 방식 선택하기
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {view === 'matched' && (
+              <div className="bg-white/95 border-8 border-amber-600 rounded-[3rem] p-10 flex flex-col items-center justify-center text-center space-y-8 max-w-lg shadow-2xl animate-in zoom-in-95 duration-500 z-20">
+                <div className="relative">
+                  <div className="w-40 h-40 bg-yellow-100 rounded-full flex items-center justify-center shadow-xl border-4 border-yellow-400">
+                    <div className="absolute inset-0 border-8 border-yellow-300 rounded-full animate-ping opacity-30"></div>
+                    <div className="text-7xl">{detectedFood.emoji}</div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <span className="inline-block px-5 py-2 bg-red-100 text-red-700 rounded-full text-md font-extrabold tracking-wide border-2 border-red-200">
+                    AI 분석 완료! ({detectedFood.kr})
+                  </span>
+                  <h2 className="text-3xl font-black text-amber-900 leading-tight">
+                    나와 같은 메뉴를 고른<br/>식사 메이트를 찾았어요!
+                  </h2>
+                </div>
+                <button onClick={enterChat} className="w-full py-5 bg-amber-500 text-amber-950 rounded-2xl font-black text-xl hover:bg-amber-400 transition-all active:scale-95 flex items-center justify-center gap-3 border-b-4 border-amber-700 shadow-xl">
+                  식탁 합치기 (입장) <span>🍽️</span>
+                </button>
+              </div>
+            )}
+
+            {view === 'chat' && (
+              <div className="w-full h-full flex flex-col relative pb-4 md:pb-8">
+                
+                <div className="flex-1 relative flex flex-col items-center justify-end overflow-hidden w-full pt-4">
+                  <div className="absolute top-4 w-full flex justify-between px-12 md:px-48 text-6xl md:text-7xl opacity-90 drop-shadow-xl z-0">
+                    <span className="animate-pulse" style={{animationDuration: '3s'}}>🏮</span>
+                    <span className="animate-pulse" style={{animationDuration: '4s'}}>🏮</span>
+                  </div>
+                  
+                  <div className={`relative z-10 text-[10rem] md:text-[14rem] leading-none transition-transform duration-500 drop-shadow-2xl ${isTyping ? 'animate-bounce' : 'hover:-translate-y-2'} -mb-6 md:-mb-10`}>
+                    🐼
+                  </div>
+                  
+                  <div className="relative w-[150%] md:w-[120%] h-[120px] md:h-[180px] bg-gradient-to-b from-amber-700 to-amber-950 border-t-[16px] border-amber-900 rounded-t-[50%] flex justify-center z-20 shadow-[0_-15px_40px_rgba(0,0,0,0.6)] shrink-0">
+                    <div className="absolute -top-10 md:-top-16 flex items-end justify-center gap-4 md:gap-12 w-full drop-shadow-2xl">
+                      <div className="text-5xl md:text-[5.5rem] hover:scale-110 transition-transform mb-2 md:mb-4">🍵</div>
+                      <div className="text-[6rem] md:text-[9rem] hover:scale-110 transition-transform z-30 -mb-4 md:-mb-6 animate-in slide-in-from-bottom-10 duration-700">
+                        {detectedFood.emoji}
+                      </div>
+                      <div className="text-5xl md:text-[5.5rem] hover:scale-110 transition-transform mb-2 md:mb-4">🍚</div>
+                    </div>
+                  </div>
+                </div>
+
+                {showOptions && chatStep < currentScenario.length && (
+                  <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="w-full max-w-3xl flex flex-col gap-4 p-6 relative">
+                      
+                      <div className="absolute -top-16 left-1/2 -translate-x-1/2">
+                        <button onClick={() => {if(!micState) setShowOptions(false)}} disabled={!!micState} className={`bg-gray-800 hover:bg-gray-700 text-white px-6 py-3 rounded-full font-bold shadow-lg border-2 border-gray-600 flex items-center gap-2 transition-all ${micState ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                          <span>🔼</span> 질문 화면 다시 보기
+                        </button>
+                      </div>
+
+                      <div className="text-center mb-2">
+                        <span className="bg-red-600 text-white px-6 py-2 rounded-full font-bold shadow-lg border-2 border-red-400">
+                          답변을 누르거나 마이크로 천천히 읽어보세요
+                        </span>
+                      </div>
+
+                      {currentScenario[chatStep].options.map((opt, idx) => (
+                        <div key={idx} className="relative group">
+                          <div className={`w-full text-left p-6 rounded-2xl border-4 transition-all shadow-2xl flex items-center justify-between
+                            ${recordingOption === opt ? (micState === 'listening' ? 'border-red-500 bg-red-50' : 'border-green-500 bg-green-50') : 'border-amber-400 bg-white hover:bg-amber-50'}`}>
+                            <div className="flex-1 cursor-pointer" onClick={() => !micState && handleUserReply(opt)}>
+                              <div className="text-amber-600 font-mono text-sm mb-1">{opt.pinyin}</div>
+                              <div className="font-bold text-2xl text-amber-900 mb-2">{opt.ch}</div>
+                              <div className="text-lg text-amber-700 font-medium">{opt.kr}</div>
+                            </div>
+                            
+                            <button onClick={(e) => { e.stopPropagation(); handleMicClick(opt); }} disabled={!!micState} className={`ml-4 w-16 h-16 rounded-full flex items-center justify-center shrink-0 border-4 transition-all text-3xl
+                                ${recordingOption === opt ? (micState === 'listening' ? 'bg-red-500 border-red-700 animate-pulse' : 'bg-green-500 border-green-700') : 'bg-amber-100 border-amber-300 hover:bg-amber-200'}
+                                ${micState && recordingOption !== opt ? 'opacity-30' : ''}`}>
+                              {recordingOption === opt ? (
+                                micState === 'listening' ? '🗣️' : '✅'
+                              ) : (
+                                '🎙️'
+                              )}
+                            </button>
+                          </div>
+                          
+                          {recordingOption === opt && (
+                            <div className={`absolute -bottom-4 right-8 text-white px-5 py-2 rounded-full text-sm font-bold shadow-lg flex items-center gap-2
+                              ${micState === 'listening' ? 'bg-red-600 animate-bounce' : 'bg-green-600'}`}>
+                              {micState === 'listening' ? (
+                                <>듣고 있어요... 끝까지 읽어주세요 ⏳</>
+                              ) : (
+                                <>인식 완료! 판다에게 전송 중 ✅</>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="w-full max-w-5xl mx-auto z-40 px-4 shrink-0 relative mt-[-20px] md:mt-[-40px]">
+                  {chatStep < currentScenario.length ? (
+                    <div className="relative bg-orange-950/95 border-4 md:border-8 border-amber-500 rounded-[2rem] p-6 md:p-10 shadow-[0_-10px_50px_rgba(0,0,0,0.6)] min-h-[220px]">
+                      <div className="absolute -top-8 left-8 bg-red-600 text-yellow-100 px-8 py-3 rounded-full border-4 border-amber-500 font-black text-xl shadow-lg transform -rotate-2">
+                        판다 메이트
+                      </div>
+
+                      {!isTyping && !showOptions && (
+                        <button onClick={() => setShowOptions(true)} className="absolute -top-6 right-8 bg-yellow-400 hover:bg-yellow-300 text-amber-900 px-6 py-2 rounded-full font-bold shadow-lg border-2 border-yellow-600 animate-bounce flex items-center gap-2">
+                          답변 열기 <span>➡️</span>
+                        </button>
+                      )}
+
+                      {isTyping ? (
+                        <div className="flex items-center gap-3 h-full mt-4">
+                          <div className="flex gap-2">
+                            <span className="w-4 h-4 bg-amber-400 rounded-full animate-bounce"></span>
+                            <span className="w-4 h-4 bg-amber-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></span>
+                            <span className="w-4 h-4 bg-amber-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></span>
+                          </div>
+                          <span className="text-amber-200/50 font-bold ml-2">입력 중...</span>
+                        </div>
+                      ) : (
+                        <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500 relative">
+                          
+                          <div className="flex flex-wrap gap-2 mb-2 pl-16">
+                            {currentScenario[chatStep].vocab.map((v, i) => (
+                              <div key={i} className="inline-flex items-center gap-2 bg-black/40 border border-amber-500/40 rounded-lg px-3 py-1.5 shadow-sm">
+                                <span className="text-amber-400 font-bold text-base">{v.ch}</span>
+                                <span className="text-amber-200/70 font-mono text-xs">{v.pinyin}</span>
+                                <span className="text-white/80 border-l border-amber-500/40 pl-2 text-xs">{v.kr}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          <button onClick={() => playTTS(currentScenario[chatStep].aiMsg.ch)} className="absolute -left-2 top-10 bg-amber-500 hover:bg-amber-400 p-3 rounded-full border-2 border-amber-300 transition-colors text-2xl" title="다시 듣기">
+                            🔊
+                          </button>
+
+                          <div className="pl-16 border-l-4 border-amber-500/30">
+                            <p className="text-amber-500 font-mono text-lg mb-1 tracking-wide">
+                              {currentScenario[chatStep].aiMsg.pinyin}
+                            </p>
+                            <p className="text-yellow-400 font-extrabold text-2xl md:text-4xl leading-snug drop-shadow-md">
+                              {currentScenario[chatStep].aiMsg.ch}
+                            </p>
+                            <p className="text-white/80 font-medium text-xl md:text-2xl mt-2 leading-relaxed">
+                              {currentScenario[chatStep].aiMsg.kr}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-white/95 border-8 border-amber-600 rounded-[3rem] p-12 text-center shadow-2xl w-full max-w-2xl mx-auto mb-4 relative z-50 mt-10">
+                      <div className="text-6xl mb-6">🎇</div>
+                      <h2 className="text-3xl font-black text-amber-900 mb-4">식사가 마무리 되었습니다!</h2>
+                      <p className="text-amber-700 font-medium text-xl mb-8">오늘 하루도 수고 많았어요.<br/>다음에 또 반쪽 식탁을 찾아주세요.</p>
+                      <button onClick={resetApp} className="px-10 py-4 bg-red-600 hover:bg-red-700 text-white rounded-full font-black text-xl border-b-4 border-red-900 active:border-b-0 active:translate-y-1 transition-all">
+                        처음으로 돌아가기
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
