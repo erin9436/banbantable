@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>반반식탁절 </title>
+  <title>반반식탁절 (유린절)</title>
   
   <script src="https://unpkg.com/react@17/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js" crossorigin></script>
@@ -46,6 +46,22 @@
 
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
+
+    // --- 에러를 해결하기 위한 아이콘 대체 컴포넌트들 ---
+    const Camera = () => <span className="text-4xl drop-shadow-md">📸</span>;
+    const ScanLine = () => <span className="text-5xl drop-shadow-lg">🔍</span>;
+    const Utensils = () => <span className="text-2xl">🍽️</span>;
+    const Heart = () => <span className="text-3xl">❤️</span>;
+    const ArrowRight = () => <span className="text-xl">➡️</span>;
+    const RefreshCw = () => <span className="text-2xl">🔄</span>;
+    const Mic = () => <span className="text-3xl">🎙️</span>;
+    const Volume2 = () => <span className="text-2xl">🔊</span>;
+    const ChevronUp = () => <span className="text-xl">🔼</span>;
+    const MicVocal = () => <span className="text-3xl">🗣️</span>;
+    const CheckCircle2 = () => <span className="text-xl">✅</span>;
+    const Loader2 = () => <span className="text-xl">⏳</span>;
+    const Upload = () => <span className="text-4xl drop-shadow-md">📤</span>;
+    const ImageIcon = () => <span className="text-7xl drop-shadow-md">🖼️</span>;
 
     const FOOD_LIST = [
       { 
@@ -373,15 +389,15 @@
           
           <div className="bg-red-600 text-white p-4 flex items-center justify-between shadow-lg border-b-8 border-red-800 z-50 relative">
             <div className="flex items-center gap-3 pl-4">
-              <span className="text-3xl">❤️</span>
+              <Heart />
               <div>
                 <h1 className="text-2xl font-extrabold tracking-widest text-yellow-300 drop-shadow-md">半半餐桌节</h1>
                 <p className="text-sm font-bold text-red-100 tracking-wide">반반식탁절 : 따로 또 같이</p>
               </div>
             </div>
             {view !== 'home' && (
-               <button onClick={resetApp} className="mr-4 p-3 bg-red-700 hover:bg-red-800 rounded-full border-2 border-red-400 transition-colors shadow-inner text-xl">
-                 🔄
+               <button onClick={resetApp} className="mr-4 p-3 bg-red-700 hover:bg-red-800 rounded-full border-2 border-red-400 transition-colors shadow-inner flex items-center justify-center">
+                 <RefreshCw />
                </button>
             )}
           </div>
@@ -400,7 +416,7 @@
                   
                   {scanSource === 'none' && (
                     <div className="flex flex-col items-center gap-4 text-amber-400/50">
-                      <span className="text-7xl">🖼️</span>
+                      <ImageIcon />
                       <p className="font-bold">입력 방식을 선택해주세요</p>
                     </div>
                   )}
@@ -417,7 +433,7 @@
                     <>
                       <div className="absolute inset-0 bg-yellow-400/30 backdrop-blur-[1px]"></div>
                       <div className="absolute top-0 left-0 w-full h-3 bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.9)] animate-scan z-20"></div>
-                      <span className="text-6xl text-red-500 animate-pulse z-20 drop-shadow-lg">🔍</span>
+                      <div className="z-20"><ScanLine /></div>
                       <p className="absolute bottom-6 font-bold text-red-600 animate-pulse z-20 bg-white/80 px-4 py-1 rounded-full">AI 이미지 분석 중...</p>
                     </>
                   )}
@@ -429,10 +445,10 @@
                   {!isScanning && scanSource === 'none' && (
                     <div className="flex gap-3 w-full">
                       <button onClick={() => setScanSource('webcam')} className="flex-1 py-4 bg-amber-500 text-amber-950 rounded-xl font-bold text-lg hover:bg-amber-400 transition-all flex flex-col items-center gap-1 border-b-4 border-amber-700 active:border-b-0 active:translate-y-1">
-                        <span className="text-2xl">📸</span> 웹캠으로 비추기
+                        <Camera /> 웹캠으로 비추기
                       </button>
                       <button onClick={() => fileInputRef.current.click()} className="flex-1 py-4 bg-amber-100 text-amber-800 rounded-xl font-bold text-lg hover:bg-amber-200 transition-all flex flex-col items-center gap-1 border-b-4 border-amber-300 active:border-b-0 active:translate-y-1">
-                        <span className="text-2xl">📤</span> 사진 업로드하기
+                        <Upload /> 사진 업로드하기
                       </button>
                     </div>
                   )}
@@ -447,7 +463,7 @@
                             ? 'bg-gray-400 border-gray-600 text-white cursor-not-allowed' 
                             : 'border-red-700 bg-red-500 text-yellow-100 hover:bg-red-600 shadow-xl active:border-b-0 active:translate-y-1'}`}
                       >
-                        {isModelLoading ? 'AI 모델 불러오는 중...' : '이 음식 분석하기'} <span>➡️</span>
+                        {isModelLoading ? 'AI 모델 불러오는 중...' : '이 음식 분석하기'} <ArrowRight />
                       </button>
                       <button onClick={() => { setScanSource('none'); setImagePreview(null); }} className="w-full py-3 text-amber-600 font-bold hover:text-red-500 underline underline-offset-2">
                         다른 방식 선택하기
@@ -475,7 +491,7 @@
                   </h2>
                 </div>
                 <button onClick={enterChat} className="w-full py-5 bg-amber-500 text-amber-950 rounded-2xl font-black text-xl hover:bg-amber-400 transition-all active:scale-95 flex items-center justify-center gap-3 border-b-4 border-amber-700 shadow-xl">
-                  식탁 합치기 (입장) <span>🍽️</span>
+                  식탁 합치기 (입장) <Utensils />
                 </button>
               </div>
             )}
@@ -510,7 +526,7 @@
                       
                       <div className="absolute -top-16 left-1/2 -translate-x-1/2">
                         <button onClick={() => {if(!micState) setShowOptions(false)}} disabled={!!micState} className={`bg-gray-800 hover:bg-gray-700 text-white px-6 py-3 rounded-full font-bold shadow-lg border-2 border-gray-600 flex items-center gap-2 transition-all ${micState ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                          <span>🔼</span> 질문 화면 다시 보기
+                          <ChevronUp /> 질문 화면 다시 보기
                         </button>
                       </div>
 
@@ -534,9 +550,9 @@
                                 ${recordingOption === opt ? (micState === 'listening' ? 'bg-red-500 border-red-700 animate-pulse' : 'bg-green-500 border-green-700') : 'bg-amber-100 border-amber-300 hover:bg-amber-200'}
                                 ${micState && recordingOption !== opt ? 'opacity-30' : ''}`}>
                               {recordingOption === opt ? (
-                                micState === 'listening' ? '🗣️' : '✅'
+                                micState === 'listening' ? <MicVocal /> : <CheckCircle2 />
                               ) : (
-                                '🎙️'
+                                <Mic />
                               )}
                             </button>
                           </div>
@@ -545,9 +561,9 @@
                             <div className={`absolute -bottom-4 right-8 text-white px-5 py-2 rounded-full text-sm font-bold shadow-lg flex items-center gap-2
                               ${micState === 'listening' ? 'bg-red-600 animate-bounce' : 'bg-green-600'}`}>
                               {micState === 'listening' ? (
-                                <>듣고 있어요... 끝까지 읽어주세요 ⏳</>
+                                <>듣고 있어요... 끝까지 읽어주세요 <Loader2 /></>
                               ) : (
-                                <>인식 완료! 판다에게 전송 중 ✅</>
+                                <>인식 완료! 판다에게 전송 중 <CheckCircle2 /></>
                               )}
                             </div>
                           )}
@@ -566,7 +582,7 @@
 
                       {!isTyping && !showOptions && (
                         <button onClick={() => setShowOptions(true)} className="absolute -top-6 right-8 bg-yellow-400 hover:bg-yellow-300 text-amber-900 px-6 py-2 rounded-full font-bold shadow-lg border-2 border-yellow-600 animate-bounce flex items-center gap-2">
-                          답변 열기 <span>➡️</span>
+                          답변 열기 <ArrowRight />
                         </button>
                       )}
 
@@ -592,8 +608,8 @@
                             ))}
                           </div>
 
-                          <button onClick={() => playTTS(currentScenario[chatStep].aiMsg.ch)} className="absolute -left-2 top-10 bg-amber-500 hover:bg-amber-400 p-3 rounded-full border-2 border-amber-300 transition-colors text-2xl" title="다시 듣기">
-                            🔊
+                          <button onClick={() => playTTS(currentScenario[chatStep].aiMsg.ch)} className="absolute -left-2 top-10 bg-amber-500 hover:bg-amber-400 p-3 rounded-full border-2 border-amber-300 transition-colors flex items-center justify-center" title="다시 듣기">
+                            <Volume2 />
                           </button>
 
                           <div className="pl-16 border-l-4 border-amber-500/30">
